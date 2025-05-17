@@ -35,7 +35,7 @@ echo "Moving all downloaded files in the same folder named all_faa_gff'"
 mkdir -p all_faa_gff
 
 # Find and process all faa and gff3 files
-find . -type f \( -name "*.faa" -o -name "*.gff3" \) | while read -r file; do
+find . -type f \( -name "*.faa" -o -name "*.gff" \) | while read -r file; do
     # Extract the GCF_xxx folder name
     gcf_id=$(basename "$(dirname "$file")")
     
