@@ -1,20 +1,34 @@
 #!/bin/bash
 
-input=$1
+# Usage: ./ncbidatasets.sh accession_list.txt
+input="$1"
 batch_size=10
 counter=0
 
+# File types to include (edit this line as needed)
+INCLUDE_FILES="gff3,protein"  # options: genome, cds, rna, protein, gff3, gbff, fna
+
+if [[ ! -f "$input" ]]; then
+    echo "Error: Input file '$input' not found."
+    exit 1
+fi
+
 while read -r accession; do
+    [[ -z "$accession" ]] && continue  # skip empty lines
+
     echo "Downloading $accession..."
 
-    # Include GFF and protein FASTA (FAA) in the download
     datasets download genome accession "$accession" \
-        --include gff3,protein \                       #edit this accordingly to what file type you need (e.g. fna, gb)
+        --include "$INCLUDE_FILES" \
         --filename "${accession}.zip"
 
-    unzip -o "${accession}.zip" -d "${accession}" && rm "${accession}.zip"
-
-    echo "Done with $accession."
+    if [[ -f "${accession}.zip" ]]; then
+        unzip -o "${accession}.zip" -d "${accession}"
+        rm "${accession}.zip"
+        echo "Done with $accession."
+    else
+        echo "Warning: Failed to download or unzip $accession"
+    fi
 
     ((counter++))
 
@@ -22,32 +36,22 @@ while read -r accession; do
         echo "Batch of $batch_size completed. Pausing for 1 minute to avoid overloading NCBI..."
         sleep 60
     else
-        sleep 5  #  pause between requests
+        sleep 5
     fi
 done < "$input"
 
 echo "All downloads complete."
 
-sleep 10
+# Organise FAA and GFF files
+echo "Moving all .faa and .gff3 files to 'all_faa_gff/'..."
 
-echo "Moving all downloaded files in the same folder named all_faa_gff'"
-# Create destination folder
 mkdir -p all_faa_gff
 
-# Find and process all faa and gff3 files
 find . -type f \( -name "*.faa" -o -name "*.gff" \) | while read -r file; do
-    # Extract the GCF_xxx folder name
     gcf_id=$(basename "$(dirname "$file")")
-    
-    # Get file extension (.faa or .gff3)
     ext="${file##*.}"
-    
-    # Define new filename
     new_name="${gcf_id}.${ext}"
-    
-    # Copy and rename to central folder
     cp "$file" "all_faa_gff/${new_name}"
-    
     echo "Moved: $file -> all_faa_gff/${new_name}"
 done
 
