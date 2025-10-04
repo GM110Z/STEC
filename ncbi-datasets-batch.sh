@@ -6,7 +6,8 @@ batch_size=10
 counter=0
 
 # File types to include (edit this line as needed)
-INCLUDE_FILES="gff3,protein"  # options: genome, cds, rna, protein, gff3, gbff, fna
+# genome -> genomic .fna; gbff -> GenBank .gbff; protein -> .faa; gff3 -> .gff/.gff3
+INCLUDE_FILES="gff3,protein,genome,gbff"
 
 if [[ ! -f "$input" ]]; then
     echo "Error: Input file '$input' not found."
@@ -42,18 +43,32 @@ done < "$input"
 
 echo "All downloads complete."
 
-# Organise FAA and GFF files
-echo "Moving all .faa and .gff3 files to 'all_faa_gff/'..."
+# Organise FAA, GFF, GBFF, and FNA files
+echo "Collecting .faa, .gff/.gff3, .gbff, and .fna files into 'all_seq_renamed/'..."
 
-mkdir -p all_faa_gff
+mkdir -p all_seq_renamed
 
-find . -type f \( -name "*.faa" -o -name "*.gff" \) | while read -r file; do
-    gcf_id=$(basename "$(dirname "$file")")
+# Find target files (handles both .gff and .gff3)
+find . -type f \( -name "*.faa" -o -name "*.gff" -o -name "*.gff3" -o -name "*.gbff" -o -name "*.fna" \) | while read -r file; do
+    # Try to derive a sensible ID for the file's parent accession.
+    # Prefer a GCF_/GCA_ pattern if present anywhere in the path; fallback to immediate parent dir.
+    path_id=$(echo "$file" | grep -oE 'G[CA]F_[0-9]+\.[0-9]+' | head -n1)
+    if [[ -z "$path_id" ]]; then
+        path_id=$(basename "$(dirname "$file")")
+    fi
+
     ext="${file##*.}"
-    new_name="${gcf_id}.${ext}"
-    cp "$file" "all_faa_gff/${new_name}"
-    echo "Moved: $file -> all_faa_gff/${new_name}"
+
+    # Normalise GFF extension to gff3 if needed
+    if [[ "$ext" == "gff" ]]; then
+        ext="gff3"
+    fi
+
+    new_name="${path_id}.${ext}"
+    cp "$file" "all_seq_renamed/${new_name}"
+    echo "Moved: $file -> all_seq_renamed/${new_name}"
 done
 
-echo "All .faa and .gff3 files have been renamed and moved to 'all_faa_gff/'"
+echo "All files have been renamed and moved to 'all_seq_renamed/'."
+
 
