@@ -9,3 +9,6 @@ If it finds hits for both models on the same contig whose features are within ma
 If no qualifying pair exists, it tries a fallback: if there’s a model1 hit with no downstream model2 hit on that contig, it extracts from that model1 hit to the end of the contig.
 
 It appends the chosen interval to Locus-coordinates.txt, and cleans up temporary HMMER outputs.
+
+
+runs python probeV2.1.1.py <model1.hmm> <model2.hmm> <model3.hmm> <faa_dir> <gb_dir>
