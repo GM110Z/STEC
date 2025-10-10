@@ -1,0 +1,41 @@
+Inputs
+
+HMM profiles: model1.hmm, model2.hmm, (optionally model3.hmm)
+
+A folder of protein FASTA files (*.faa)
+
+A folder of matching GenBank files (*.gbk/*.gbff)
+
+HMMER search
+
+Runs hmmsearch for each HMM model against every protein FASTA file.
+
+Collects protein IDs with significant hits (above the chosen threshold).
+
+Mapping to genome
+
+Matches the protein hits back to their coding sequences (CDS) in the corresponding GenBank file.
+
+Retrieves their genomic coordinates (start–end positions on each contig).
+
+Finding intervals
+
+For each model1 hit, checks if there is a model2 (or model3) hit downstream on the same contig within the chosen distance (max_gap, default 30 kb).
+
+If found, extracts the genomic region spanning both hits.
+
+These are labelled as model1+model2 or model1+model3.
+
+Fallback rule
+
+If no partner hit (model2 or model3) is found downstream, the script extracts from the model1 hit to the end of the contig.
+
+This is marked as fallback.
+
+Outputs
+
+Extracted genomic regions are written to new GenBank files (*_1plus2.gbk, *_1plus3.gbk, or *_fallback.gbk).
+
+A log file Locus-coordinates.txt records, for each sample:
+
+runs python probeV24.py <model1.hmm> <model2.hmm> <model3.hmm> <faa_dir> <gb_dir>
