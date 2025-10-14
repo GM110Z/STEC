@@ -1,0 +1,10 @@
+1. run mash triangle as :
+mkdir -p triangle_out
+LC_ALL=C mash triangle -p 32 all_genomes.msh| bgzip -@ 16 > triangle_out/triangle.txt.gz
+
+
+2. mash info all_genomes.msh | awk '/^\[Hashes\]/{ok=1;next} ok && $1 ~ /^[0-9]+$/ {print $3}' > members.txt
+
+3. python3 mash-triangle-to-clusters.py triangle.txt.gz 0.05 clusters.tsv members.txt
+
+  Threshold can be changed from 0.05 to anything
