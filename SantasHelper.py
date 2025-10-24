@@ -17,7 +17,7 @@ def main():
 
     # --- Load inputs ---
     # Operon table with Protein and operon info
-    df_operon = pd.read_csv(args.operon, sep=",")
+    df_operon = pd.read_csv(args.operon, sep="\t")
     required_operon = {"Protein_ID", "nuccore_id", "start", "stop", "strand", "operon_number", "product", "accession", "ClusterRep"}
     missing_operon = required_operon - set(df_operon.columns)
     if missing_operon:
