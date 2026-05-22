@@ -6,3 +6,7 @@ Antiphage defence vs prophages encoding toxins
 3. **merge_pfam_padloc_defensefinder.py**. A variation of SantasHelper.py where only pfam (from edison.py), padloc and defensefinder are combined.
    Runs as ./merge_pfam_padloc_defensefinder.py --pfam pfam.tsv --padloc padloc.tsv  --antidefense defensefinder.tsv -o Final-R-file.tsv   (Optional argument is --amrfinder)
    Useful resources: https://github.com/GM110Z/PAPI-islands-analysis/blob/main/edison.py, https://github.com/GM110Z/PAPI-islands-analysis/tree/main/ExampleInputs/SantasHelper.py
+
+**geofetch.py** : Retrieves the geographical location, source, organism from which strains were isolated from. Input is list of Refseq/Genbank assembly ids.
+
+Runs as : python geofetch.py list_of_ids.txt output_file_name.txt
