@@ -1,42 +1,21 @@
 #!/usr/bin/env python3
 
-"""
-Retrieve metadata for GCA accessions from NCBI Assembly/BioSample
-
-Extracts:
-- geographic location
-- isolation source
-- host
-- disease
-- collection date
-- strain
-
-Usage:
-    python fetch_metadata.py accessions.txt output.tsv
-"""
-
 import sys
 import time
 import requests
 import pandas as pd
 from xml.etree import ElementTree as ET
 
-# ---------------------------------------------------
-# CONFIG
-# ---------------------------------------------------
 
 EMAIL = "your@email.com"
 
-# Optional but HIGHLY recommended
+
 API_KEY = None
 # API_KEY = "your_ncbi_api_key"
 
 BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
 
 
-# ---------------------------------------------------
-# NCBI REQUEST FUNCTION WITH RETRY/BACKOFF
-# ---------------------------------------------------
 
 def ncbi_get(url, params=None, retries=5):
 
@@ -54,11 +33,9 @@ def ncbi_get(url, params=None, retries=5):
 
             r = requests.get(url, params=params, timeout=30)
 
-            # success
             if r.status_code == 200:
                 return r.text
 
-            # rate limit
             elif r.status_code == 429:
 
                 wait = 2 ** attempt
@@ -78,9 +55,6 @@ def ncbi_get(url, params=None, retries=5):
     raise RuntimeError("Failed after retries")
 
 
-# ---------------------------------------------------
-# GCA -> BIOSAMPLE
-# ---------------------------------------------------
 
 def assembly_to_biosample(gca):
 
@@ -120,9 +94,6 @@ def assembly_to_biosample(gca):
     return biosample
 
 
-# ---------------------------------------------------
-# FETCH BIOSAMPLE METADATA
-# ---------------------------------------------------
 
 def fetch_biosample_metadata(biosample):
 
@@ -182,9 +153,7 @@ def fetch_biosample_metadata(biosample):
     return fields
 
 
-# ---------------------------------------------------
-# MAIN
-# ---------------------------------------------------
+
 
 if len(sys.argv) != 3:
 
@@ -227,7 +196,6 @@ for i, gca in enumerate(gcas, start=1):
 
         results.append(row)
 
-        # polite pause
         time.sleep(0.5)
 
     except Exception as e:
