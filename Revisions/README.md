@@ -2,6 +2,6 @@
 
 run as: python meta-fetch.py list-ids.txt --email youremail@gmail.com
 
-**source-quantification.py**: Uses output from meta-fetch.py to extract Biosample data and quantify the isolation source for a series of isolates
+**source-quantification-toxin.py/source-quantification-phylogroup.py**: Uses output from meta-fetch.py to extract Biosample data and quantify the isolation source for a series of isolates
 
 run as: python source-quantification.py metadata_file.txt
