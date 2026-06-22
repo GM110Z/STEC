@@ -1,0 +1,110 @@
+library(ape)
+library(phytools)
+library(ggtree)
+library(ggtreeExtra)
+library(ggplot2)
+library(dplyr)
+library(readr)
+
+tree_file <- "prophage_regions_mashtree.nwk"
+meta_file <- "VIRIDIC_cluster_table_combined_consecutive.tsv"
+
+clean_name <- function(x) {
+  x <- basename(x)
+  x <- sub("\\.fasta$|\\.fa$|\\.fna$", "", x, ignore.case = TRUE)
+  x <- sub("__$", "", x)
+  x <- gsub(":", "_", x)
+  x <- gsub("-", "_", x)
+  toupper(x)
+}
+
+tree <- read.tree(tree_file)
+tree <- midpoint.root(tree)
+tree <- ladderize(tree)
+
+meta <- read_tsv(meta_file, show_col_types = FALSE, trim_ws = TRUE)
+names(meta)[1:4] <- c("genome", "species_cluster", "genus_cluster", "genus")
+
+meta <- meta %>%
+  mutate(
+    genus = ifelse(is.na(genus) | genus == "", "Unknown", genus),
+    key = clean_name(genome)
+  )
+
+plot_data <- data.frame(
+  label = tree$tip.label,
+  key = clean_name(tree$tip.label),
+  stringsAsFactors = FALSE
+) %>%
+  left_join(meta %>% select(key, genus), by = "key") %>%
+  mutate(
+    genus = ifelse(is.na(genus), "Unknown", genus),
+    track = "Genus"
+  )
+
+cat("Matched taxonomy for", sum(plot_data$genus != "Unknown"),
+    "of", nrow(plot_data), "tips\n")
+
+genera <- sort(unique(plot_data$genus))
+
+cols <- c(
+  "Unknown" = "#D9D9D9",
+  "Diegovirus" = "#66C2A5",
+  "Glaedevirus" = "#8DA0CB",
+  "Jouyvirus" = "#A6D854",
+  "Lambdavirus" = "#FFD92F",
+  "Limmatquaivirus" = "#A6CEE3",
+  "Marienburgvirus" = "#E5C494",
+  "Nesevirus" = "#E78AC3",
+  "Oslovirus" = "#33A02C",
+  "Radostvirus" = "#6A3D9A",
+  "Vilvertvirus" = "#B15928"
+)
+
+missing_cols <- setdiff(genera, names(cols))
+if (length(missing_cols) > 0) {
+  extra_cols <- grDevices::hcl.colors(length(missing_cols), palette = "Set 3")
+  names(extra_cols) <- missing_cols
+  cols <- c(cols, extra_cols)
+}
+
+cols <- cols[genera]
+
+p <- suppressWarnings(
+  ggtree(
+    tree,
+    layout = "circular",
+    branch.length = "none",
+    open.angle = 8
+  )
+)
+
+p <- p +
+  geom_fruit(
+    data = plot_data,
+    geom = geom_tile,
+    mapping = aes(y = label, x = track, fill = genus),
+    offset = 0.01,
+    pwidth = 0.35,
+    width = 1.9,
+    colour = "white",
+    linewidth = 0.08
+  ) +
+  scale_fill_manual(values = cols, name = "Genus") +
+  theme_void() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.45, "cm"),
+    plot.background = element_rect(fill = "white", colour = NA),
+    panel.background = element_rect(fill = "white", colour = NA),
+    plot.margin = margin(10, 10, 10, 10)
+  )
+
+ggsave("mashtree_genera_circular_professional.pdf", p,
+       width = 10, height = 10, bg = "white")
+
+ggsave("mashtree_genera_circular_professional.png", p,
+       width = 10, height = 10, dpi = 300, bg = "white")
+
